@@ -1,4 +1,4 @@
-# chatbot-seq2seq
+# A seq2seq Chatbot
 A chatbot based on seq2seq model, implemented by Theano.
 This repo tries to recur the Google paper [A Neural Conversational Model](http://arxiv.org/abs/1506.05869).
 
