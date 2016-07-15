@@ -170,7 +170,6 @@ class Seq2Seq(object):
 			inputs=[ei, em, di],
 			outputs=listof_token_idx,
 			givens={encoderInputs:ei, encoderMask:em, decoderInputs:di}
-			#givens={encoderInputs:ei, encoderMask:em}
 			)
 		#####################################################
 		#####################################################
@@ -180,9 +179,9 @@ class Seq2Seq(object):
 	def utter(self, encoderInput, encoderMask):
 		decoderInputs=point_data(1)
 		if encoderInputs.ndim == 1:
-			encoderInputs.reshape((1, encoderInputs.shape[0]))
+			encoderInputs.reshape((encoderInputs.shape[0], 1))
 		return self._utter(encoderInputs, encoderMask ,decoderInputs)
-		#return self._utter(encoderInputs, encoderMask)
+	
 
 
 
