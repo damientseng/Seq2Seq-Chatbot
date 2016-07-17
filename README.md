@@ -15,5 +15,5 @@ To prepare the data for training, run `make_convs.py`.
 Next run `build_model.py` to train:
 >$THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python build_model.py
 
-Note that the last few lines are commented out, which illustrate how to make a `Chatbot` instance with a `model` instance, and to talk to the chatbot instance.
+Note that the last few lines are commented out, which illustrate how to make a `Chatbot` instance with a `model` instance, and to talk to the chatbot instance by simply passing it a string.
 
