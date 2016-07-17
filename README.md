@@ -7,8 +7,11 @@ The training dataset can be found here: [Cornell Movie--Dialogs Corpus](http://w
 ========
 ##How to Use
 First, have theano installed.
+
 Download the dataset above, make a new folder called `data` for it.
+
 To prepare the data for training, run `make_convs.py`.
+
 Next run `build_model.py` to train:
 >$THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python build_model.py
 
