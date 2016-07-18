@@ -17,3 +17,5 @@ Next run `build_model.py` to train:
 
 Note that the last few lines are commented out, which illustrate how to make a `Chatbot` instance with a `model` instance, and to talk to the chatbot instance by simply passing it a string.
 
+![](https://github.com/saltypaul/Seq2Seq-Chatbot/blob/master/pics/Training%20Phase.jpg)
+![](https://github.com/saltypaul/Seq2Seq-Chatbot/blob/master/pics/Eval.jpg)
