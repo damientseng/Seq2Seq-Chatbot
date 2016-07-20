@@ -21,7 +21,7 @@ def build_model(
 	hidden_size = 512,
 	lstm_layers_num = 2,
 	batch_size = 10,
-	max_epochs = 2,
+	max_epochs = 200000,
 	retrain = False
 	):
 	"""
