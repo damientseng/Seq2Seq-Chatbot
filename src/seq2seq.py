@@ -95,8 +95,7 @@ class Seq2Seq(object):
 			borrow=True
 			)
 		self.params += [self.lookuptable, self.linear]    #concatenate
-
-		dim1, dim2 = encoderInputs.shape
+		
 		#(max_sent_size, batch_size, hidden_size)
 		state_below = self.lookuptable[encoderInputs.flatten()].reshape((encoderInputs.shape[0], encoderInputs.shape[1], self.hidden_size))
 		for _ in range(self.lstm_layers_num):
