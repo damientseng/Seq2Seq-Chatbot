@@ -12,9 +12,9 @@ class LSTM(object):
 		self.hidden_size = hidden_size
 
 		# lstm W matrixes, Wf, Wi, Wo, Wc respectively, all config.floatX type
-		self.W = theano.shared(name="W", value=utils.init_lstm_W_U(self.hidden_size), borrow=True)
+		self.W = theano.shared(name="W", value=utils.init_norm(self.hidden_size, 4*self.hidden_size), borrow=True)
 		# lstm U matrixes, Uf, Ui, Uo, Uc respectively, all config.floatX type
-		self.U = theano.shared(name="U", value=utils.init_lstm_W_U(self.hidden_size), borrow=True)
+		self.U = theano.shared(name="U", value=utils.init_norm(self.hidden_size, 4*self.hidden_size), borrow=True)
 		# lstm b vectors, bf, bi, bo, bc respectively, all config.floatX type
 		self.b = theano.shared(name="b", value=np.zeros( 4*self.hidden_size, dtype=theano.config.floatX ), borrow=True)
 
@@ -86,20 +86,19 @@ class Seq2Seq(object):
 
 		self.lookuptable = theano.shared(
 			name="Encoder LookUpTable",
-			#value=np.random.randn(self.voca_size, self.hidden_size).astype(theano.config.floatX),
-			value=0.01*np.ones((self.voca_size, self.hidden_size)).astype(theano.config.floatX),
+			value=utils.init_norm(self.voca_size, self.hidden_size),
 			borrow=True
 			)
 		self.linear = theano.shared(
 			name="Linear",
-			value=np.random.randn(self.hidden_size, self.voca_size).astype(theano.config.floatX),
+			value=utils.init_norm(self.hidden_size, self.voca_size),
 			borrow=True
 			)
 		self.params += [self.lookuptable, self.linear]    #concatenate
 
 		dim1, dim2 = encoderInputs.shape
 		#(max_sent_size, batch_size, hidden_size)
-		state_below = self.lookuptable[encoderInputs.flatten()].reshape((dim1, dim2, self.hidden_size))
+		state_below = self.lookuptable[encoderInputs.flatten()].reshape((encoderInputs.shape[0], encoderInputs.shape[1], self.hidden_size))
 		for _ in range(self.lstm_layers_num):
 			enclstm = LSTM(self.hidden_size)
 			self.encoder_lstm_layers += enclstm,    #append
@@ -109,7 +108,7 @@ class Seq2Seq(object):
 			self.Cos += Cs[-1],
 			state_below = hs
 
-		state_below = self.lookuptable[decoderInputs.flatten()].reshape((dim1, dim2, self.hidden_size))
+		state_below = self.lookuptable[decoderInputs.flatten()].reshape((decoderInputs.shape[0], decoderInputs.shape[1], self.hidden_size))
 		for i in range(self.lstm_layers_num):
 			declstm = LSTM(self.hidden_size)
 			self.decoder_lstm_layers += declstm,    #append
@@ -128,9 +127,9 @@ class Seq2Seq(object):
 			)
 
 		def _NLL(pred, y, m):
-			return -m * tensor.log(pred[tensor.arange(dim2), y])
+			return -m * tensor.log(pred[tensor.arange(decoderInputs.shape[1]), y])
 		costs, updates = theano.scan(fn=_NLL, sequences=[softmax_outputs, decoderTarget, decoderMask])
-		loss = costs.mean()
+		loss = costs.sum() / decoderMask.sum()
 
 		gparams = [tensor.grad(loss, param) for param in self.params]
 		updates = [(param, param - self.learning_rate*gparam) for param, gparam in zip(self.params, gparams)]
@@ -149,7 +148,7 @@ class Seq2Seq(object):
 
 		def _step(token_idxs, hs_, Cs_):
 			hs, Cs = [], []
-			state_below = self.lookuptable[token_idxs].reshape((dim1, dim2, self.hidden_size))
+			state_below = self.lookuptable[token_idxs].reshape((decoderInputs.shape[0], decoderInputs.shape[1], self.hidden_size))
 			for i, lstm in enumerate(self.decoder_lstm_layers):
 				h, C = lstm.forward(state_below, msk, hs_[i], Cs_[i])    #mind msk
 				hs += h[-1],
@@ -176,30 +175,13 @@ class Seq2Seq(object):
 	def train(self, encoderInputs, encoderMask, decoderInputs, decoderMask, decoderTarget):
 		return self._train(encoderInputs, encoderMask, decoderInputs, decoderMask, decoderTarget)
 
-	def utter(self, encoderInput, encoderMask):
-		decoderInputs=point_data(1)
+	def utter(self, encoderInputs, encoderMask):
+		decoderInputs=utils.point_data()
 		if encoderInputs.ndim == 1:
-			encoderInputs.reshape((encoderInputs.shape[0], 1))
-		return self._utter(encoderInputs, encoderMask ,decoderInputs)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+			encoderInputs = encoderInputs.reshape((encoderInputs.shape[0], 1))
+			encoderMask = encoderMask.reshape((encoderMask.shape[0], 1))
+		rez = self._utter(encoderInputs, encoderMask ,decoderInputs)
+		return rez.reshape((rez.shape[0],))
 
 
 

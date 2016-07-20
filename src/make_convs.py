@@ -45,18 +45,29 @@ def make_dictionary():
 	"""
 	each line of corpus should be a sentence.
 	"""
-	token2idx = {token_start: 1, token_end: 2}    #0 is not used
-	idx2token = {1: token_start, 2: token_end}
-	i = 3
+	dix = {}
+	total = 0.
 	with open(path_corpus) as mf:
-		corpus = mf.readlines()
-		for line in corpus:
+		lines = mf.readlines()
+		for line in lines:
 			tokens = tokenize(line)
-			for token in tokens:
-				if token not in token2idx:
-					token2idx[token] = i
-					idx2token[i] = token
-					i += 1
+			for tk in tokens:
+				dix.setdefault(tk, 0)
+				dix[tk] += 1
+				total += 1
+	dix = {k:v/total for k, v in dix.items() if v >= 5} #
+
+	token2idx = {token_start: 1, token_end: 2, token_unk: 3}    #0 is not used
+	idx2token = {1: token_start, 2: token_end, 3: token_unk}
+	i = 4
+
+	for k, v in dix.items():
+		token2idx[k] = i
+		idx2token[i] = k
+		i += 1
+
+	print len(token2idx)
+
 	with open(path_token2idx, "wb") as mf:
 		json.dump(token2idx, mf)
 
@@ -85,9 +96,10 @@ def make_train_data():
 
 
 if __name__ == '__main__':
+	
 	make_line_dict()
 	make_conversations()
 	make_dictionary()
 	make_train_data()
-	
+
 

@@ -17,11 +17,11 @@ logging.basicConfig(level=logging.DEBUG,
 
 
 def build_model(
-	voca_size = 160549,
+	voca_size = 29331,
 	hidden_size = 512,
 	lstm_layers_num = 2,
-	batch_size = 40,
-	max_epochs = 5000,
+	batch_size = 10,
+	max_epochs = 2,
 	retrain = False
 	):
 	"""
@@ -54,22 +54,18 @@ def build_model(
 		deMsk = get_mask(deIpt)
 		loss, costs = model.train(enIpt, enMsk, deIpt, deMsk, deTgt)
 
-		if ep%batch_size == 0:
+		if ep%20 == 0:
 			print "in epoch %d/%d..."%(ep, max_epochs)
 		if batch_idx == 0:
-			print "\n    loss: ", loss
 			ot = "in epoch %d/%d..."%(ep, max_epochs) + "	loss:	"+str(loss)
+			print ot
 			logging.info(ot)
 
 		batch_idx = (batch_idx+1) % num_batchs
-
-	with open(path_log, "wb") as mf:
-		for line in logs:
-			mf.write(line+"\n")
-
-	with open(path_pkl, "wb", protocol=cPickle.HIGHEST_PROTOCOL) as mf:
+	"""
+	with open(path_pkl, "wb") as mf:
 		pickle.dump(model, mf)
-
+	"""
 	return model
 
 
@@ -83,12 +79,11 @@ if __name__ == '__main__':
 	time_end = timeit.default_timer()
 	print "Done initializing chatbot...Time taken:   ", (time_end-time_start)
 
-	"""
+	
 	while True:
 		conva = raw_input("role A: ")
 		convB = cbot.utter(conva)
 		print "role B: ", convB, "\n"
-	"""
 
 
 

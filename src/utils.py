@@ -6,8 +6,11 @@ import json
 max_sent_size = np.int32(50)
 idx_start = np.int32(1)
 idx_end = np.int32(2)
+idx_unk = np.int32(3)    #unknown
+
 token_start = "<start>"
 token_end = "<end>"
+token_unk = "<unk>"
 
 path_train = "../data/train.txt"
 path_idx2token = "../data/idx2token.json"
@@ -38,14 +41,30 @@ def init_lstm_W_U(size):
 			  ortho_matrix( size ),
 			  ortho_matrix( size ), ], axis=1).astype(theano.config.floatX)
 
+def init_uniform(n_in, n_out):
+	W = np.asarray(
+		np.random.uniform(
+			low=-4.*np.sqrt(6. / (n_in + n_out)),
+			high=4.*np.sqrt(6. / (n_in + n_out)),
+			size=(n_in, n_out)
+			),
+		dtype=theano.config.floatX
+		)
+	return W 
+
+def init_norm(n_in, n_out):
+	W = np.asarray(np.random.randn(n_in, n_out)*0.1, dtype=theano.config.floatX)
+	return W
+
 def numpy_floatX(data):
 	return np.asarray(data, dtype=theano.config.floatX)
 
 def point_mask():
 	return np.ones((1, 1), dtype=theano.config.floatX)
 
-def point_data(dt):
-	return np.asarray([[dt]], dtype="int32")
+def point_data():
+	return np.asarray([[1]], dtype="int32")
+	#return np.zeros(max_sent_size, dtype="int32").reshape((max_sent_size, 1))
 
 """
 def load_train_data(datapath):
@@ -83,17 +102,18 @@ def load_json(path):
 
 
 def get_mask(data):
-	mask = np.not_equal(data, 0).astype("int32")
+	mask = (np.not_equal(data, 0)).astype("int32")
 	return mask 
 
 def tokenize(s):
 	"""
 	very raw tokenizer
 	"""
+	s = clearn_str(s)
 	return s.strip().split(" ")
 
 def clearn_str(s):
-	s = re.sub(r"\s", " ", s)
+	s = re.sub(r"\s+", " ", s)
 	s = re.sub(r"\-", "", s)
 	return s
 
@@ -108,8 +128,8 @@ def reverse_list(ilist):
 def str2idxs(s, tkidx=None):
 	if not tkidx:
 		tkidx = load_json(path_token2idx)
-	tokens = s.split(" ")
-	rev = [ str(tkidx[t]) for t in tokens]
+	tokens = tokenize(s)
+	rev = [ str(tkidx.get(t, 3)) for t in tokens]  #default to <unk>
 	return rev
 
 def idxs2tokens(idxs, idxtk=None):
@@ -117,11 +137,11 @@ def idxs2tokens(idxs, idxtk=None):
 		idxtk = load_json(path_idx2token)
 	rez = []
 	for idx in idxs:
-		rez += idxtk[idx],
+		rez += idxtk[str(idx)],
 	return rez
 
 def parse_input(conv):
-	conv_idxs = reverse_list( cut_and_pad( str2idxs( clearn_str(conv) ) ) )
+	conv_idxs = np.asarray( reverse_list( cut_and_pad( str2idxs( clearn_str(conv) ) ) ) , dtype="int32")
 	return conv_idxs
 
 def cut_end(s):
