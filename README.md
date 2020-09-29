@@ -1,5 +1,7 @@
 # A seq2seq Chatbot
 
+[![Code Grade](https://www.code-inspector.com/project/14111/score/svg)](https://frontend.code-inspector.com/project/14111/dashboard)
+
 A chatbot based on seq2seq model, implemented by Theano, based on the Google paper [A Neural Conversational Model](http://arxiv.org/abs/1506.05869).
 
 The training dataset can be found here: [Cornell Movie--Dialogs Corpus](http://www.mpi-sws.org/~cristian/Cornell_Movie-Dialogs_Corpus.html)
